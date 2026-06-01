@@ -11,9 +11,9 @@ include_directories("./include/extlib")
 include_directories("./include/shared")
 include_directories("./src/extlib")
 
-add_library(${TARGET_NAME} SHARED)
+# add_library(${TARGET_NAME} SHARED)
 
-add_subdirectory("./src/extlib")
+# add_subdirectory("./src/extlib")
 
 set_target_properties(${TARGET_NAME}
     PROPERTIES
