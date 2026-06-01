@@ -111,8 +111,4 @@ RECOMP_PATCH void Attention_Update(Attention* attention, Player* player, Actor* 
         attention->reticleActor = NULL;
         Math_StepToF(&attention->reticleRadius, 500.0f, 80.0f);
     }
-    
-    if (immersive) {
-        attention->reticleSpinCounter = 0;
-    }
 }

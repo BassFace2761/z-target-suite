@@ -8,8 +8,8 @@ extern Gfx gLockOnArrowDL[];
 
 typedef struct
 {
-    Color_RGB8 primary;
-    Color_RGB8 secondary;
+    Color_RGBA8 primary;
+    Color_RGBA8 secondary;
 } AttentionColor;
 
 extern AttentionColor sAttentionColors[];
@@ -17,7 +17,7 @@ extern AttentionColor sAttentionColors[];
 RECOMP_PATCH void Attention_Draw(Attention *attention, PlayState *play)
 {
     Player* player = GET_PLAYER(play);
-    Actor* actor; // used for both the reticle actor and arrow hover actor
+    Actor* actor;
 
     u32 immersiveEnabled = recomp_get_config_u32("immersive_targeting");
 
@@ -30,8 +30,9 @@ RECOMP_PATCH void Attention_Draw(Attention *attention, PlayState *play)
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    if (attention->reticleFadeAlphaControl != 0) {
-        LockOnReticle* reticle;
+    if (attention->reticleFadeAlphaControl != 0)
+    {
+        LockOnReticle *reticle;
         s16 alpha = 255;
         f32 projectedPosScale = 1.0f;
         Vec3f projectedPos;
@@ -41,28 +42,28 @@ RECOMP_PATCH void Attention_Draw(Attention *attention, PlayState *play)
         s32 curReticle;
         f32 lockOnScaleX;
 
-        if (attention->reticleSpinCounter != 0) {
-            // Reticle is spinning so it is active, only need to draw one
+        if (attention->reticleSpinCounter != 0)
+        {
             numReticles = 1;
-        } else {
-            // Use multiple reticles for the motion blur effect from the reticle
-            // quickly zooming in on an actor from off screen
+        }
+        else
+        {
             numReticles = ARRAY_COUNT(attention->lockOnReticles);
         }
 
-        if (actor != NULL) {
+        if (actor != NULL)
+        {
             Math_Vec3f_Copy(&attention->reticlePos, &actor->focus.pos);
             projectedPosScale = (500.0f - attention->reticleRadius) / 420.0f;
-        } else {
-            // Not locked on, start fading out
+        }
+        else
+        {
             attention->reticleFadeAlphaControl -= 120;
 
-            if (attention->reticleFadeAlphaControl < 0) {
+            if (attention->reticleFadeAlphaControl < 0)
+            {
                 attention->reticleFadeAlphaControl = 0;
             }
-
-            // `reticleFadeAlphaControl` is only used as an alpha when fading out.
-            // Otherwise it defaults to 255, set above.
             alpha = attention->reticleFadeAlphaControl;
         }
 
@@ -78,25 +79,32 @@ RECOMP_PATCH void Attention_Draw(Attention *attention, PlayState *play)
 
         attention->curReticle--;
 
-        if (attention->curReticle < 0) {
+        if (attention->curReticle < 0)
+        {
             attention->curReticle = ARRAY_COUNT(attention->lockOnReticles) - 1;
         }
 
         Attention_SetReticlePos(attention, attention->curReticle, projectedPos.x, projectedPos.y, projectedPos.z);
 
-        if (!(player->stateFlags1 & PLAYER_STATE1_TALKING) || (actor != player->focusActor)) {
+        if (!(player->stateFlags1 & PLAYER_STATE1_TALKING) || (actor != player->focusActor))
+        {
             OVERLAY_DISP = Gfx_SetupDL(OVERLAY_DISP, SETUPDL_57);
 
             for (i = 0, curReticle = attention->curReticle; i < numReticles;
-                 i++, curReticle = (curReticle + 1) % ARRAY_COUNT(attention->lockOnReticles)) {
+                 i++, curReticle = (curReticle + 1) % ARRAY_COUNT(attention->lockOnReticles))
+            {
                 reticle = &attention->lockOnReticles[curReticle];
 
-                if (reticle->radius < 500.0f) {
+                if (reticle->radius < 500.0f)
+                {
                     s32 triangleIndex;
 
-                    if (reticle->radius <= 120.0f) {
+                    if (reticle->radius <= 120.0f)
+                    {
                         lockOnScaleX = 0.15f;
-                    } else {
+                    }
+                    else
+                    {
                         lockOnScaleX = ((reticle->radius - 120.0f) * 0.001f) + 0.15f;
                     }
 
@@ -108,22 +116,26 @@ RECOMP_PATCH void Attention_Draw(Attention *attention, PlayState *play)
 
                     Matrix_RotateZS(attention->reticleSpinCounter * 0x200, MTXMODE_APPLY);
 
-                    // Draw the 4 triangles that make up the reticle
-                    for (triangleIndex = 0; triangleIndex < 4; triangleIndex++) {
+                    for (triangleIndex = 0; triangleIndex < 4; triangleIndex++)
+                    {
                         Matrix_RotateZS(0x10000 / 4, MTXMODE_APPLY);
                         Matrix_Push();
                         Matrix_Translate(reticle->radius, reticle->radius, 0.0f, MTXMODE_APPLY);
                         MATRIX_FINALIZE_AND_LOAD(OVERLAY_DISP++, play->state.gfxCtx);
-                        if (!immersiveEnabled) {
+
+                        if (!immersiveEnabled)
+                        {
                             gSPDisplayList(OVERLAY_DISP++, gLockOnReticleTriangleDL);
                         }
+
                         Matrix_Pop();
                     }
                 }
 
                 alpha -= 255 / ARRAY_COUNT(attention->lockOnReticles);
 
-                if (alpha < 0) {
+                if (alpha < 0)
+                {
                     alpha = 0;
                 }
             }
@@ -132,8 +144,9 @@ RECOMP_PATCH void Attention_Draw(Attention *attention, PlayState *play)
 
     actor = attention->arrowHoverActor;
 
-    if ((actor != NULL) && !(actor->flags & ACTOR_FLAG_LOCK_ON_DISABLED)) {
-        AttentionColor* attentionColor = &sAttentionColors[actor->category];
+    if ((actor != NULL) && !(actor->flags & ACTOR_FLAG_LOCK_ON_DISABLED))
+    {
+        AttentionColor *attentionColor = &sAttentionColors[actor->category];
 
         POLY_XLU_DISP = Gfx_SetupDL(POLY_XLU_DISP, SETUPDL_7);
 
@@ -145,8 +158,8 @@ RECOMP_PATCH void Attention_Draw(Attention *attention, PlayState *play)
         gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, attentionColor->primary.r, attentionColor->primary.g,
                         attentionColor->primary.b, 255);
         MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
-
-        if (!immersiveEnabled) {
+        if (!immersiveEnabled)
+        {
             gSPDisplayList(POLY_XLU_DISP++, gLockOnArrowDL);
         }
     }
